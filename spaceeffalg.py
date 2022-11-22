@@ -6,6 +6,7 @@ import psutil
 
 import numpy as np
 from pyparsing import Char
+import math
 
 """
 def process_memory():
@@ -21,6 +22,100 @@ def time_wrapper():
     time_taken = (end_time - start_time)*1000
     return time_taken    
 """
+pgap:int = 30
+
+
+
+# table for storing Delta values = pxy
+delta_vals = np.zeros([4,4], dtype=int)
+delta_vals[0,0] = 0
+delta_vals[0,1] = 110
+delta_vals[0,2] = 48
+delta_vals[0,3] = 94
+delta_vals[1,0] = 110
+delta_vals[1,1] = 0
+delta_vals[1,2] = 118
+delta_vals[1,3] = 48
+delta_vals[2,0] = 48
+delta_vals[2,1] = 118
+delta_vals[2,2] = 0
+delta_vals[2,3] = 110
+delta_vals[3,0] = 94
+delta_vals[3,1] = 48
+delta_vals[3,2] = 110
+delta_vals[3,3] = 0
+
+#Calculate the mismatch value alpha x y 
+def pxy(first_char:str, sec_char:str):
+    p_x = 0
+    p_y = 0
+    if first_char == "A":
+        p_x = 0
+    elif first_char == "C":
+        p_x = 1
+    elif first_char == "G":
+        p_x = 2
+    elif first_char == "T":
+        p_x = 3
+    if sec_char == "A":
+        p_y = 0
+    elif sec_char == "C":
+        p_y = 1
+    elif sec_char == "G":
+        p_y = 2
+    elif sec_char == "T":
+        p_y = 3
+    return delta_vals[p_x,p_y]
+
+def space_eff_alg(x:str, y:str):
+    # pattern lengths
+    m = len(x)
+    n = len(y)
+    
+    space_eff_table = np.zeros([m+1,2], dtype=int) #int dp[m+1][2] = {0};
+    space_eff_table[0:(m+1),0] = [ i * pgap for i in range(m+1)]    
+
+    j = 1
+    while j <= n:
+        i = 1
+        space_eff_table[0][1] = j * pgap
+        while i <= m:
+            space_eff_table[i][1] = min(space_eff_table[i - 1][0] + pxy(x[i-1],y[j-1]),
+                            space_eff_table[i - 1][1] + pgap,
+                            space_eff_table[i][0] + pgap)                
+            i += 1
+        #Move column 1 of B to column 0 to make room for the next iteration
+        #Update B[i,0]=B[i,1] for each i
+        space_eff_table[:(m+1),0] = space_eff_table[:(m+1),1]
+        j += 1
+    #print(space_eff_table)
+
+    return space_eff_table[:(m+1),1]
+
+def divide_and_conq(x:str, y:str):
+    # pattern lengths
+    m = len(x)
+    n = len(y)
+
+    rev_x:str
+    rev_y:str
+    rev_x = x[::-1]
+    rev_y = y[::-1]
+
+
+    if (m <=2 or n<=2):
+        get_minimum_penalty(x,y)
+    else:
+        forward_table = space_eff_alg(x, y[:math.floor(n/2)])
+        backward_table = space_eff_alg(rev_x, rev_y[:math.floor(n/2)])
+
+        min_index = np.argmin(forward_table + backward_table[::-1])
+        print(min_index, math.floor(n/2)) #add this to P
+        
+        divide_and_conq(x[:min_index], y[:math.floor(n/2)])
+        divide_and_conq(x[min_index:], y[math.floor(n/2):])
+    
+    
 
 def get_minimum_penalty(x:str, y:str):
     """
@@ -31,7 +126,6 @@ def get_minimum_penalty(x:str, y:str):
     :param pxy: penalty of mis-matching the characters of X and Y, mismatch_penalty
     :param pgap: penalty of a gap between pattern elements, gap_penalty
     """
-    pgap:int = 30
 
     # initializing variables
     i = 0
@@ -49,46 +143,6 @@ def get_minimum_penalty(x:str, y:str):
     
     #print(dp)
 
-    # table for storing Delta values = pxy
-    delta_vals = np.zeros([4,4], dtype=int)
-    delta_vals[0,0] = 0
-    delta_vals[0,1] = 110
-    delta_vals[0,2] = 48
-    delta_vals[0,3] = 94
-    delta_vals[1,0] = 110
-    delta_vals[1,1] = 0
-    delta_vals[1,2] = 118
-    delta_vals[1,3] = 48
-    delta_vals[2,0] = 48
-    delta_vals[2,1] = 118
-    delta_vals[2,2] = 0
-    delta_vals[2,3] = 110
-    delta_vals[3,0] = 94
-    delta_vals[3,1] = 48
-    delta_vals[3,2] = 110
-    delta_vals[3,3] = 0
-
-    #Calculate the mismatch value alpha x y 
-    def pxy(first_char:str, sec_char:str):
-        p_x = 0
-        p_y = 0
-        if first_char == "A":
-            p_x = 0
-        elif first_char == "C":
-            p_x = 1
-        elif first_char == "G":
-            p_x = 2
-        elif first_char == "T":
-            p_x = 3
-        if sec_char == "A":
-            p_y = 0
-        elif sec_char == "C":
-            p_y = 1
-        elif sec_char == "G":
-            p_y = 2
-        elif sec_char == "T":
-            p_y = 3
-        return delta_vals[p_x,p_y]
 
     #Optimal Alignment
     # calculating the minimum penalty
@@ -104,29 +158,41 @@ def get_minimum_penalty(x:str, y:str):
                                 dp[i][j - 1] + pgap)                
             j += 1
         i += 1
-    print(dp)
+    #print(dp)
     #print(dp[i-1][j-1]) #60 is the min cost of alignment
 
     #Space-Efficient-Alignment
-    space_eff_table = np.zeros([m+1,2], dtype=int) #int dp[m+1][2] = {0};
-    space_eff_table[0:(m+1),0] = [ i * pgap for i in range(m+1)]    
+    space_eff_alg(x, y)
+    # space_eff_table = np.zeros([m+1,2], dtype=int) #int dp[m+1][2] = {0};
+    # space_eff_table[0:(m+1),0] = [ i * pgap for i in range(m+1)]    
 
-    j = 1
-    while j <= n:
-        i = 1
-        space_eff_table[0][1] = j * pgap
-        while i <= m:
-            space_eff_table[i][1] = min(space_eff_table[i - 1][0] + pxy(x[i-1],y[j-1]),
-                            space_eff_table[i - 1][1] + pgap,
-                            space_eff_table[i][0] + pgap)                
-            i += 1
-        #Move column 1 of B to column 0 to make room for the next iteration
-        #Update B[i,0]=B[i,1] for each i
-        space_eff_table[:(m+1),0] = space_eff_table[:(m+1),1]
-        j += 1  
-    #print(space_eff_table)  
+    # j = 1
+    # while j <= n:
+    #     i = 1
+    #     space_eff_table[0][1] = j * pgap
+    #     while i <= m:
+    #         space_eff_table[i][1] = min(space_eff_table[i - 1][0] + pxy(x[i-1],y[j-1]),
+    #                         space_eff_table[i - 1][1] + pgap,
+    #                         space_eff_table[i][0] + pgap)                
+    #         i += 1
+    #     #Move column 1 of B to column 0 to make room for the next iteration
+    #     #Update B[i,0]=B[i,1] for each i
+    #     space_eff_table[:(m+1),0] = space_eff_table[:(m+1),1]
+    #     j += 1  
+    # #print(space_eff_table)  
     
-    #Backward-Space-Efficient-Alignmen
+    #Backward-Space-Efficient-Alignment 
+    back_space_eff_table = np.zeros([m+1,2], dtype=int) #int dp[m+1][2] = {0};
+    back_space_eff_table[0:(m+1),0] = [ i * pgap for i in range(m+1)]    
+    rev_x:str
+    rev_y:str
+    rev_x = x[::-1]
+    rev_y = y[::-1]
+
+    space_eff_alg(rev_x, rev_y)
+    #print(back_space_eff_table)
+
+    '''
     #Prof says reverse strings and re-use alignment algo
     rev_x:str
     rev_y:str
@@ -150,15 +216,17 @@ def get_minimum_penalty(x:str, y:str):
             j += 1
         i += 1
     print(g)
-    
+    '''
 def test_get_minimum_penalty():
     """
     Test the get_minimum_penalty function
     """
     # input strings
-    gene1 = "ACTG"
-    gene2 = "ATGA"
-
+    gene1 = "GGTCAGTCATCAGTGGTCAGTCATCAGTCAGGTCAGTCATCAGTGGTCAGTCATCAGTCACACA"
+    gene2 = "GCGCAGGCGCAGCGCATATTATCGCATATGCGCAGGCGCAGCGCATATTATCGCATATTATTAT"
+    
+    
     # calling the function to calculate the result
-    get_minimum_penalty(gene1, gene2)
+    #get_minimum_penalty(gene1, gene2)
+    divide_and_conq(gene1, gene2)
 test_get_minimum_penalty()
