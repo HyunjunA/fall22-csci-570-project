@@ -310,6 +310,200 @@ def naiveMethod(input_file, output_file):
     return naive_opt     
 
 
+def naiveMethod_v3(generated_string1_x, generated_string2_y):
+    
+   
+    print("Generated String x: ", generated_string1_x)
+
+   
+    print("Generated String y: ", generated_string2_y)
+
+
+    
+
+    # define OPT as a 2D array  
+    OPT = [[0 for x in range(len(generated_string2_y)+1)] for y in range(len(generated_string1_x)+1)]
+    
+    print(OPT)
+    # size of OPT
+
+    # initialize OPT(0,0) = 0
+    OPT[0][0] = 0
+
+    delta = 30
+
+    # initialize OPT(i,0) = delta*i
+    for i in range(1,len(generated_string1_x)+1):
+        OPT[i][0] = i*delta
+    # initialize OPT(0,j) = delta*j
+    for j in range(1,len(generated_string2_y)+1):
+        OPT[0][j] = delta*j
+
+
+
+    # for i =1 to m
+    for i in range(1,len(generated_string1_x)+1):
+        # for j = 1 to n
+        for j in range(1,len(generated_string2_y)+1):
+            
+            if i > 0 and j > 0:
+                           
+                OPT[i][j] = min ( 
+                    OPT[i-1][j-1] + alpha(generated_string1_x[i-1],generated_string2_y[j-1]), 
+                    OPT[i-1][j] + delta, 
+                    OPT[i][j-1] + delta 
+                )
+
+    # last element of the matrix is the answer
+    print("The minimum cost of alignment is: ", OPT[len(generated_string1_x)][len(generated_string2_y)])
+
+
+
+
+    # pattern lengths
+    M = len(generated_string1_x)
+    N = len(generated_string2_y)
+    # i = M-1
+    # j = N-1
+    # alignment1 = ""
+    # while True:
+    #     if i == 0 or j == 0:
+    #         break
+    #     elif i <= M-1 and j <= N-1:
+            
+    #         # find  max among OPT[i-1][j-1], OPT[i-1][j], OPT[i][j-1]
+    #         max_val = max(OPT[i-1][j-1], OPT[i-1][j], OPT[i][j-1])
+
+    #         if max_val == OPT[i-1][j-1]:
+    #             alignment1 = generated_string1_x[i] + alignment1
+    #             i = i-1
+    #             j = j-1
+                
+    #         elif max_val == OPT[i-1][j]:
+    #             alignment1 = '_' + alignment1
+    #             i = i-1
+    #             # generated_string1_x
+    #             # generated_string2_y
+                
+    #         elif max_val == OPT[i][j-1]:
+    #             alignment1 = '_' + alignment1
+    #             j = j-1
+    # print("alignment1", alignment1)
+            
+
+
+
+    # should make my own "Reconstructing the solution"
+    # Reconstructing the solution 
+    l = N + M   # maximum possible length
+    i = M
+    j = N
+     
+    xpos = l
+    ypos = l
+
+    x=generated_string1_x
+    y=generated_string2_y
+ 
+    # Final answers for the respective strings
+    import numpy as np
+    xans = np.zeros(l+1, dtype=int)
+    yans = np.zeros(l+1, dtype=int)
+     
+ 
+    while not (i == 0 or j == 0):
+        #print(f"i: {i}, j: {j}")
+        if x[i - 1] == y[j - 1]:       
+            xans[xpos] = ord(x[i - 1])
+            yans[ypos] = ord(y[j - 1])
+            xpos -= 1
+            ypos -= 1
+            i -= 1
+            j -= 1
+        elif (OPT[i - 1][j - 1] + alpha(x[i-1], y[j-1])) == OPT[i][j]:
+         
+            xans[xpos] = ord(x[i - 1])
+            yans[ypos] = ord(y[j - 1])
+            xpos -= 1
+            ypos -= 1
+            i -= 1
+            j -= 1
+         
+        elif (OPT[i - 1][j] + delta) == OPT[i][j]:
+            xans[xpos] = ord(x[i - 1])
+            yans[ypos] = ord('_')
+            xpos -= 1
+            ypos -= 1
+            i -= 1
+         
+        elif (OPT[i][j - 1] + delta) == OPT[i][j]:       
+            xans[xpos] = ord('_')
+            yans[ypos] = ord(y[j - 1])
+            xpos -= 1
+            ypos -= 1
+            j -= 1
+         
+ 
+    while xpos > 0:
+        if i > 0:
+            i -= 1
+            xans[xpos] = ord(x[i])
+            xpos -= 1
+        else:
+            xans[xpos] = ord('_')
+            xpos -= 1
+     
+    while ypos > 0:
+        if j > 0:
+            j -= 1
+            yans[ypos] = ord(y[j])
+            ypos -= 1
+        else:
+            yans[ypos] = ord('_')
+            ypos -= 1
+ 
+    # Since we have assumed the answer to be n+m long,
+    # we need to remove the extra gaps in the starting
+    # id represents the index from which the arrays
+    # xans, yans are useful
+    id = 1
+    i = l
+    while i >= 1:
+        if (chr(yans[i]) == '_') and chr(xans[i]) == '_':
+            id = i + 1
+            break
+         
+        i -= 1
+ 
+    # Printing the final answer
+    print(f"Minimum Penalty in aligning the genes = {OPT[M][N]}")
+    print("The aligned genes are:")   
+    # X
+    i = id
+    x_seq = ""
+    while i <= l:
+        x_seq += chr(xans[i])
+        i += 1
+    print(f"X seq: {x_seq}")
+ 
+    # Y
+    i = id
+    y_seq = ""
+    while i <= l:
+        y_seq += chr(yans[i])
+        i += 1
+    print(f"Y seq: {y_seq}")
+
+
+
+
+
+
+    # Save OPT
+    naive_opt = OPT
+    return naive_opt     
+
+
 def eachinterationfrom(x,y):
 
     generated_string1_x = x
@@ -384,10 +578,18 @@ def eachinterationfrom(x,y):
     return OPT[1]
 
 
-def divConq_align(generated_string1_x,generated_string2_y, x_range, y_range):
+def divConq_align(generated_string1_x,generated_string2_y):
 
-    if generated_string1_x=="" and generated_string2_y=="":
-        return 
+    # if generated_string1_x=="" and generated_string2_y=="":
+    #     return 
+    
+    # if generated_string1_x length is less than 2 and generated_string2_y length is less than 2 use naive method
+    if len(generated_string1_x) <= 2 and len(generated_string2_y) <=2:
+        # naive_align(generated_string1_x,generated_string2_y)
+        value=naiveMethod_v3(generated_string1_x,generated_string2_y)
+        return value
+        
+
 
     generated_string2_y_L = generated_string2_y[:int(len(generated_string2_y)/2)]
     generated_string2_y_R = generated_string2_y[int(len(generated_string2_y)/2):]
@@ -416,7 +618,8 @@ def divConq_align(generated_string1_x,generated_string2_y, x_range, y_range):
     back_opt_last=eachinterationfrom(generated_string1_x_reversed,generated_string2_y_R_reversed)
 
     q = np.argmin(for_opt_last+back_opt_last[::-1])
-
+    for_opt_last, back_opt_last = [], []
+    
     # tuple (x:q, y:n/2) to global list P
 
     n = len(generated_string2_y)
