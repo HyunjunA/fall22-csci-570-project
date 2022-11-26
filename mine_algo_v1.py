@@ -3,6 +3,7 @@ import sys
 from resource import *
 import time
 import psutil
+import numpy as np
 def process_memory():
     process = psutil.Process()
     memory_info = process.memory_info()
@@ -14,6 +15,11 @@ def time_wrapper():
     end_time = time.time()
     time_taken = (end_time - start_time)*1000
     return time_taken
+
+
+#  DEFINE GLOBAL VARIABLES
+P=[]
+
 
 # Implement the basic Dynamic Programming solution to the Sequence Alignment problem. Run the test set provided and show your results.
 
@@ -378,6 +384,75 @@ def eachinterationfrom(x,y):
     return OPT[1]
 
 
+def divConq_align(generated_string1_x,generated_string2_y, x_range, y_range):
+
+    if generated_string1_x=="" and generated_string2_y=="":
+        return 
+
+    generated_string2_y_L = generated_string2_y[:int(len(generated_string2_y)/2)]
+    generated_string2_y_R = generated_string2_y[int(len(generated_string2_y)/2):]
+
+
+    # Call Space-Efficient-Alignment(X,Y[1:n/2])
+    # Call Backward-Space-Efficient-Alignment(X,Y[n/2+1:n]) 
+
+    # Let q be the index minimizing f(q,n/2)+g(q,n/2)
+    # Add (q, n/2) to global list P 
+    # Divide-and-Conquer-Alignment(X[1 : q],Y[1 : n/2]) 
+    # Divide-and-Conquer-Alignment(X[q + 1 : n],Y[n/2 + 1 : n]) 
+    # 
+    # Return P
+    
+    # Call Space-Efficient-Alignment(X,Y[1:n/2])
+    for_opt_last=eachinterationfrom(generated_string1_x,generated_string2_y_L)
+    
+    
+    # reverse generated_string1_x
+    generated_string1_x_reversed = generated_string1_x[::-1]
+    # reverse generated_string2_y_R
+
+    generated_string2_y_R_reversed = generated_string2_y_R[::-1]
+    # Call Backward-Space-Efficient-Alignment(X,Y[n/2+1:n]) 
+    back_opt_last=eachinterationfrom(generated_string1_x_reversed,generated_string2_y_R_reversed)
+
+    q = np.argmin(for_opt_last+back_opt_last[::-1])
+
+    # tuple (x:q, y:n/2) to global list P
+
+    n = len(generated_string2_y)
+    n_2 = int(n/2)
+
+    elem_P = [(q,n_2)]
+    # Add (q, n/2) to global list P 
+    P.append(elem_P)
+    print("P",P)
+
+    # Divide-and-Conquer-Alignment(X[1 : q],Y[1 : n/2])
+    l_p=divConq_align(generated_string1_x[:q],generated_string2_y[:n_2])
+
+    # Divide-and-Conquer-Alignment(X[q + 1 : n],Y[n/2 + 1 : n])
+    r_p=divConq_align(generated_string1_x[q:],generated_string2_y[n_2:])
+
+
+    # current issue
+
+    # 해당 좌표가 상대적임.
+    # 해결책
+    # divConq_align(generated_string1_x,generated_string2_y, x_range, y_range):
+    # len_x = len(generated_string1_x)
+    # len_y = len(generated_string2_y)
+    # 즉, divConq_align(generated_string1_x,generated_string2_y,[0,len_x],[0,len_y])
+
+
+    return P
+
+
+
+    
+
+
+
+
 def spaceEfficientMethod(input_file, output_file):
     # this is the space efficient method
     # read the input file
@@ -400,41 +475,24 @@ def spaceEfficientMethod(input_file, output_file):
     print("Generated String y: ", generated_string2_y)
 
 
+    # 
+    len_x=len(generated_string1_x)
+    len_y=len(generated_string2_y)
 
-    # divide generated_string1_x into 2 parts using len(generated_string1_x)/2
-    generated_string1_x_L = generated_string1_x[:int(len(generated_string1_x)/2)]
-    generated_string1_x_R = generated_string1_x[int(len(generated_string1_x)/2):]
+
+    # Divide-and-Conquer-Alignment(X ,Y )
+
+    # divConq_align(generated_string1_x,generated_string2_y,[0,len_x],[0,len_y])
+    divConq_align(generated_string1_x,generated_string2_y)
+   
     
-    # # divide generated_string2_y into 2 parts using len(generated_string2_y)/2
-    # generated_string2_y_L = generated_string2_y[:int(len(generated_string2_y)/2)]
-    # generated_string2_y_R = generated_string2_y[int(len(generated_string2_y)/2):]
+
+
+    print("hello")
+    print("P",P)
+    # REMOVE DUPLICATES IN P
+    # P = list(set(P))
     
-
-    eachinterationfrom(generated_string1_x,generated_string2_y)
-
-    list_temp_opt = []
-
-    for j in range(0, len(generated_string2_y)):
-    
-        temp_opt=eachinterationfrom(generated_string1_x_L,generated_string2_y[:j+1])
-        list_temp_opt.append(temp_opt)
-
-
-        # reverse the string generated_string1_x_R
-        generated_string1_x_R_reversed = generated_string1_x_R[::-1]
-        # generated_string2_y[j+1:]
-
-        # reverse the string generated_string2_y[j+1:]
-        generated_string2_y_reversed = generated_string2_y[j+1:][::-1]
-
-        temp_opt=eachinterationfrom(generated_string1_x_R_reversed,generated_string2_y_reversed)
-
-        list_temp_opt.append(temp_opt)
-
-
-        
-        
-        # eachinterationfrom(generated_string1_x_R,generated_string2_y)
 
 
 
