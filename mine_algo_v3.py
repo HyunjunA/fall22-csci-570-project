@@ -125,7 +125,7 @@ def naiveMethod(input_file, output_file):
 
     first_indices,i_s=get_indices(lines,0)
     generated_string1_x = generate_string(lines[0].strip(), first_indices)
-    # generated_string1_x = "CTACCG"
+    # generated_string1_x = "CGCATC"
 
     
    
@@ -133,9 +133,18 @@ def naiveMethod(input_file, output_file):
 
     second_indices,i_final=get_indices(lines,i_s)
     generated_string2_y = generate_string(lines[i_s].strip(), second_indices)
-    # generated_string2_y ="TACATG"
+    # generated_string2_y ="CACAAT"
 
     print("Generated String y: ", generated_string2_y)
+
+    # generated_string1_x = "CGCATC"
+    # generated_string2_y ="CACAAT"
+
+    # generated_string1_x = "CG"
+    # generated_string2_y ="CA"
+
+    generated_string1_x = "ATC"
+    generated_string2_y ="AAT"
 
 
     
@@ -234,14 +243,14 @@ def naiveMethod(input_file, output_file):
  
     while not (i == 0 or j == 0):
         #print(f"i: {i}, j: {j}")
-        if x[i - 1] == y[j - 1]:       
-            xans[xpos] = ord(x[i - 1])
-            yans[ypos] = ord(y[j - 1])
-            xpos -= 1
-            ypos -= 1
-            i -= 1
-            j -= 1
-        elif (OPT[i - 1][j - 1] + alpha(x[i-1], y[j-1])) == OPT[i][j]:
+        # if x[i - 1] == y[j - 1]:       
+        #     xans[xpos] = ord(x[i - 1])
+        #     yans[ypos] = ord(y[j - 1])
+        #     xpos -= 1
+        #     ypos -= 1
+        #     i -= 1
+        #     j -= 1
+        if (OPT[i - 1][j - 1] + alpha(x[i-1], y[j-1])) == OPT[i][j]:
          
             xans[xpos] = ord(x[i - 1])
             yans[ypos] = ord(y[j - 1])
@@ -339,7 +348,7 @@ def naiveMethod(input_file, output_file):
     return OPT[M][N]
 
 
-def naiveMethod_v3(generated_string1_x, generated_string2_y):
+def naiveMethod_v3(generated_string1_x, generated_string2_y,x_range,y_range):
     
    
     print("Generated String x: ", generated_string1_x)
@@ -449,6 +458,9 @@ def naiveMethod_v3(generated_string1_x, generated_string2_y):
             ypos -= 1
             i -= 1
             j -= 1
+            
+            
+            print("hello")
         elif (OPT[i - 1][j - 1] + alpha(x[i-1], y[j-1])) == OPT[i][j]:
          
             xans[xpos] = ord(x[i - 1])
@@ -457,22 +469,36 @@ def naiveMethod_v3(generated_string1_x, generated_string2_y):
             ypos -= 1
             i -= 1
             j -= 1
-         
+            print("hello")
         elif (OPT[i - 1][j] + delta) == OPT[i][j]:
             xans[xpos] = ord(x[i - 1])
             yans[ypos] = ord('_')
             xpos -= 1
             ypos -= 1
             i -= 1
-         
+            print("hello")
         elif (OPT[i][j - 1] + delta) == OPT[i][j]:       
             xans[xpos] = ord('_')
             yans[ypos] = ord(y[j - 1])
             xpos -= 1
             ypos -= 1
             j -= 1
-         
- 
+            print("hello")
+    
+    # if [(x_range[0]+i, y_range[0]+j)] does not exist in the P
+    # then add it to the P
+
+    if [(x_range[0]+i, y_range[0]+j)] not in P:
+        P.insert(0, [(x_range[0]+i, y_range[0]+j)])
+    # else:
+    #     print("Already in P")
+
+
+    # P.insert(0, [(x_range[0]+i, y_range[0]+j)])
+    print("P: ", P)
+
+    
+
     while xpos > 0:
         if i > 0:
             i -= 1
@@ -619,6 +645,8 @@ def divConq_align(generated_string1_x,generated_string2_y,x_range,y_range):
     string_x = generated_string1_x[x_range[0]:x_range[1]]
     string_y = generated_string2_y[y_range[0]:y_range[1]]
 
+    if x_range[0] >=len(generated_string1_x)-2 or y_range[0] >=len(generated_string2_y)-2:
+        print("hello")  
     # if generated_string1_x=="" and generated_string2_y=="":
     #     return 
 
@@ -631,7 +659,11 @@ def divConq_align(generated_string1_x,generated_string2_y,x_range,y_range):
     if len(string_x) < 2 and len(string_y) <2:
     # while len(generated_string1_x) <= 2 and len(generated_string2_y) <=2:
         # naive_align(generated_string1_x,generated_string2_y)
-        temp = naiveMethod_v3(string_x,string_y)
+        temp = naiveMethod_v3(string_x,string_y,x_range,y_range)
+
+
+
+
         return temp
         
         
@@ -710,9 +742,11 @@ def divConq_align(generated_string1_x,generated_string2_y,x_range,y_range):
     n_2 = int(n/2)
     n_2 = x_range[0] + n_2
 
-    if n_2 == 20:
+    if n_2 == 1:
         print(("Hello"))
 
+    if n_2 == 60:
+        print(("Hello"))
     if q == 10:
         print(("Hello"))
 
@@ -755,7 +789,481 @@ def divConq_align(generated_string1_x,generated_string2_y,x_range,y_range):
 
 
     
+def reconstructUsingP(generated_string1_x,generated_string2_y,P):
 
+    print("P",P)
+    x_seq = ""
+    y_seq = ""
+
+    # 
+
+    # for i in range(len(P)):
+    #     print(i)
+    #     print("eachPoint i",P[i])
+    #     print("eachPoint i+1",P[i+1])
+    #     x = P[i][0][0]
+    #     y = P[i][0][1]
+
+    #     x_next = P[i+1][0][0]
+    #     y_next = P[i+1][0][1]
+
+    #     x_diff=x_next-x
+    #     y_diff=y_next-y
+    #     if i == 0 :
+    #         if x==0 and y==0 and x_diff == 0 and y_diff == 0:
+    #             x_seq += ""
+    #             y_seq += ""
+    #         elif x == 0 and y == 0 and x_diff == 0 and y_diff == 1:
+    #             x_seq += ""
+    #             y_seq += generated_string2_y[y]
+    #         elif x == 0 and y == 0 and x_diff == 1 and y_diff == 0:
+    #             x_seq += generated_string1_x[x]
+    #             y_seq += ""
+            
+
+
+
+
+
+    #     else:
+    #         if x_diff==1 and y_diff==1:
+    #             print("diagonal")
+    #             # x_seq += generated_string1_x[x]
+    #             # y_seq += generated_string2_y[y]
+    #             x_seq += generated_string1_x[P[i-1][0][0]]
+    #             y_seq += generated_string2_y[P[i-1][0][1]]
+    #         elif x_diff==1 and y_diff==0:
+    #             print("vertical")
+    #             x_seq += generated_string1_x[P[i-1][0][0]]
+    #             y_seq += "_"
+    #         elif x_diff==0 and y_diff==1:
+    #             print("horizontal")
+    #             x_seq += "_"
+    #             y_seq += generated_string2_y[P[i-1][0][1]]
+
+    # x_seq
+    len_P = len(P)
+    i=0
+    # for i < len_P:
+    while i < len_P:
+        print(i)
+        print("eachPoint i",P[i])
+        print("eachPoint i+1",P[i+1])
+        x = P[i][0][0]
+        y = P[i][0][1]
+
+        x_next = P[i+1][0][0]
+        y_next = P[i+1][0][1]
+
+        x_diff=x_next-x
+        y_diff=y_next-y
+        if i == 0 :
+            if x==0 and y==0 and x_diff == 0 and y_diff == 0:
+                x_seq += ""
+                
+            elif x == 0 and y == 0 and x_diff == 0 and y_diff == 1:
+                x_seq += ""
+                
+            elif x == 0 and y == 0 and x_diff == 1 and y_diff == 0:
+                x_seq += generated_string1_x[x]
+                
+
+        else:
+            if x_diff==1 and y_diff==1:
+                print("diagonal")
+                # x_seq += generated_string1_x[x]
+                # y_seq += generated_string2_y[y]
+                x_seq += generated_string1_x[P[i-1][0][0]]
+                
+            elif x_diff==1 and y_diff==0:
+                print("vertical")
+                x_seq += generated_string1_x[P[i-1][0][0]]
+                
+            elif x_diff==0 and y_diff==1:
+                print("horizontal")
+                x_seq += "_"
+
+        i+=1     
+        
+        print("x_seq",x_seq)
+        print("y_seq",y_seq)
+
+    
+
+    print("x_seq",x_seq)
+    print("y_seq",y_seq)
+    return x_seq,y_seq
+
+def reconstructUsingPVerTemp(generated_string1_x,generated_string2_y,P):
+
+    print("P",P)
+    x_seq = ""
+    y_seq = ""
+
+
+
+    # x_seq
+    len_P = len(P)
+    ind_P=0
+
+    x_seq_loc = 0
+    # for i < len_P:
+    while ind_P < len_P:
+        print(ind_P)
+        print("eachPoint i",P[ind_P])
+        if ind_P+1 != len_P:
+            print("eachPoint i+1",P[ind_P+1])
+            x = P[ind_P][0][0]
+            y = P[ind_P][0][1]
+
+            x_next = P[ind_P+1][0][0]
+            y_next = P[ind_P+1][0][1]
+
+            x_diff=x_next-x
+            y_diff=y_next-y
+        else:
+            x_seq += generated_string1_x[x_seq_loc]
+            x_seq_loc += 1
+            print("x_seq",x_seq)
+            
+
+        if ind_P == 0 :
+            if x==0 and y==0 and x_diff == 0 and y_diff == 0:
+                x_seq += ""
+                x_seq_loc += 0
+
+                
+                
+            elif x == 0 and y == 0 and x_diff == 0 and y_diff == 1:
+                x_seq += ""
+                x_seq_loc += 0
+                
+            elif x == 0 and y == 0 and x_diff == 1 and y_diff == 0:
+                x_seq += generated_string1_x[x]
+                x_seq_loc += 1
+
+                
+
+        else:
+            if x_diff==1 and y_diff==1 and x_seq_loc < len(generated_string1_x):
+                print("diagonal")
+                # x_seq += generated_string1_x[x]
+                # y_seq += generated_string2_y[y]
+                x_seq += generated_string1_x[x_seq_loc]
+                x_seq_loc += 1
+                
+            elif x_diff==1 and y_diff==0 and x_seq_loc < len(generated_string1_x):
+                print("vertical")
+                x_seq += generated_string1_x[x_seq_loc]
+                x_seq_loc += 1
+                
+            elif x_diff==0 and y_diff==1 and x_seq_loc < len(generated_string1_x):
+                print("horizontal")
+                x_seq += "_"
+
+        ind_P+=1
+
+
+
+    # y_seq
+    ind_P=0
+
+    y_seq_loc = 0
+    # for i < len_P:
+    while ind_P < len_P:
+        print(ind_P)
+        print("eachPoint i",P[ind_P])
+        if ind_P+1 != len_P:
+            print("eachPoint i+1",P[ind_P+1])
+            x = P[ind_P][0][0]
+            y = P[ind_P][0][1]
+
+            x_next = P[ind_P+1][0][0]
+            y_next = P[ind_P+1][0][1]
+
+            x_diff=x_next-x
+            y_diff=y_next-y
+        else:
+            y_seq += generated_string2_y[y_seq_loc]
+            y_seq_loc += 1
+            print("y_seq",y_seq)
+            
+
+        if ind_P == 0 :
+            if x==0 and y==0 and x_diff == 0 and y_diff == 0:
+                y_seq += ""
+                y_seq_loc += 0
+
+                
+                
+            elif x == 0 and y == 0 and x_diff == 0 and y_diff == 1:
+                y_seq += generated_string2_y[y]
+                
+            elif x == 0 and y == 0 and x_diff == 1 and y_diff == 0:
+                y_seq += ""
+                y_seq_loc += 0
+
+                
+
+        else:
+            if x_diff==1 and y_diff==1 and y_seq_loc < len(generated_string2_y):
+                print("diagonal")
+                # x_seq += generated_string1_x[x]
+                # y_seq += generated_string2_y[y]
+                y_seq += generated_string2_y[y_seq_loc]
+                y_seq_loc += 1
+                
+            elif x_diff==1 and y_diff==0 and y_seq_loc < len(generated_string2_y):
+                print("vertical")
+                y_seq += "_"
+                
+            elif x_diff==0 and y_diff==1 and y_seq_loc < len(generated_string2_y):
+                
+                y_seq += generated_string2_y[y_seq_loc]
+                y_seq_loc += 1
+
+        ind_P+=1       
+        
+        # print("x_seq",x_seq)
+        print("y_seq",y_seq)
+
+    
+
+    print("x_seq",x_seq)
+    print("y_seq",y_seq)
+    return x_seq,y_seq
+
+def reconstructUsingPVerTempReversed(generated_string1_x,generated_string2_y,P):
+    print("P",P)
+    x_seq = ""
+    y_seq = ""
+
+
+
+    # x_seq
+    len_P = len(P)
+    ind_P=0
+
+    x_seq_loc = len(generated_string1_x)-1
+    y_seq_loc = len(generated_string2_y)-1
+
+    # reverse for loop
+    # for i in range(len_P-1,-1,-1):
+    
+    # for i < len_P:
+    for ind_P in range(len_P-1,-1,-1):
+        print(ind_P)
+        print("eachPoint i",P[ind_P])
+        
+        
+
+        if ind_P == len_P-1 :
+
+
+            x = P[ind_P][0][0]
+            y = P[ind_P][0][1]
+
+            x_prev = P[ind_P-1][0][0]
+            y_prev = P[ind_P-1][0][1]
+
+            x_diff=x-x_prev
+            y_diff=y-y_prev
+
+
+
+            if x_diff == 1 and y_diff == 0:
+                x_seq = generated_string1_x[x_seq_loc] + x_seq
+                x_seq_loc -= 1
+
+                y_seq = "_" + y_seq
+            
+            elif x_diff == 0 and y_diff == 1:
+                x_seq = "_" + x_seq
+
+                y_seq = generated_string2_y[y_seq_loc] + y_seq
+                y_seq_loc -= 1
+            
+            elif x_diff == 1 and y_diff == 1:
+                x_seq = generated_string1_x[x_seq_loc] + x_seq
+                x_seq_loc -= 1
+
+                y_seq = generated_string2_y[y_seq_loc] + y_seq
+                y_seq_loc -= 1
+                
+
+
+            print("x_diff",x_diff)
+            print("y_diff",y_diff)
+        else:
+
+            x = P[ind_P][0][0]
+            y = P[ind_P][0][1]
+
+            x_prev = P[ind_P-1][0][0]
+            y_prev = P[ind_P-1][0][1]
+
+            x_diff=x-x_prev
+            y_diff=y-y_prev
+
+
+            if x_diff ==1 and y_diff == 1:
+                print("diagonal")
+                # add generated_string1_x[x_seq_loc] to most left of x_seq
+                x_seq = generated_string1_x[x_seq_loc] + x_seq
+                # x_seq += generated_string1_x[x_seq_loc]
+                x_seq_loc -= 1
+                y_seq = generated_string2_y[y_seq_loc] + y_seq
+                y_seq_loc -= 1
+                
+            elif x_diff ==1 and y_diff == 0:
+                print("vertical")
+                x_seq = generated_string1_x[x_seq_loc] + x_seq
+                x_seq_loc -= 1
+
+                y_seq = "_" + y_seq
+            
+            elif x_diff ==0 and y_diff == 1:
+                print("horizontal")
+                x_seq = "_" + x_seq
+                y_seq = generated_string2_y[y_seq_loc] + y_seq
+                y_seq_loc -= 1
+        
+            print("x_seq",x_seq)
+            print("y_seq",y_seq)
+    print("x_seq",x_seq)
+    print("y_seq",y_seq)
+
+
+
+        
+
+
+def reconstructUsingPVerTwo(generated_string1_x,generated_string2_y,P):
+
+    # pattern lengths
+    M = len(generated_string1_x)
+    N = len(generated_string2_y)
+    # should make my own "Reconstructing the solution"
+    # Reconstructing the solution 
+    l = N + M   # maximum possible length
+    i = M
+    j = N
+     
+    xpos = l
+    ypos = l
+
+    x=generated_string1_x
+    y=generated_string2_y
+ 
+    # Final answers for the respective strings
+    import numpy as np
+    xans = np.zeros(l+1, dtype=int)
+    yans = np.zeros(l+1, dtype=int)
+     
+    # for coord in P:
+    # reverse order for coord in P:
+    for coord in reversed(P):
+        pos_x=coord[0][0]
+        pos_y=coord[0][1]
+
+    len_P=len(P)
+    i_P=0
+    while i_P < len_P:
+        print(i_P)
+
+
+    while not (i == 0 or j == 0):
+        #print(f"i: {i}, j: {j}")
+        if x[i - 1] == y[j - 1]:       
+            xans[xpos] = ord(x[i - 1])
+            yans[ypos] = ord(y[j - 1])
+            xpos -= 1
+            ypos -= 1
+            i -= 1
+            j -= 1
+        elif (OPT[i - 1][j - 1] + alpha(x[i-1], y[j-1])) == OPT[i][j]:
+         
+            xans[xpos] = ord(x[i - 1])
+            yans[ypos] = ord(y[j - 1])
+            xpos -= 1
+            ypos -= 1
+            i -= 1
+            j -= 1
+         
+        elif (OPT[i - 1][j] + delta) == OPT[i][j]:
+            xans[xpos] = ord(x[i - 1])
+            yans[ypos] = ord('_')
+            xpos -= 1
+            ypos -= 1
+            i -= 1
+         
+        elif (OPT[i][j - 1] + delta) == OPT[i][j]:       
+            xans[xpos] = ord('_')
+            yans[ypos] = ord(y[j - 1])
+            xpos -= 1
+            ypos -= 1
+            j -= 1
+         
+ 
+    while xpos > 0:
+        if i > 0:
+            i -= 1
+            xans[xpos] = ord(x[i])
+            xpos -= 1
+        else:
+            xans[xpos] = ord('_')
+            xpos -= 1
+     
+    while ypos > 0:
+        if j > 0:
+            j -= 1
+            yans[ypos] = ord(y[j])
+            ypos -= 1
+        else:
+            yans[ypos] = ord('_')
+            ypos -= 1
+ 
+    # Since we have assumed the answer to be n+m long,
+    # we need to remove the extra gaps in the starting
+    # id represents the index from which the arrays
+    # xans, yans are useful
+    id = 1
+    i = l
+    while i >= 1:
+        if (chr(yans[i]) == '_') and chr(xans[i]) == '_':
+            id = i + 1
+            break
+         
+        i -= 1
+ 
+    # Printing the final answer
+    print(f"Similarity in gene alignment = {OPT[M][N]}")
+    print("The aligned genes are:")   
+    # X
+    i = id
+    x_seq = ""
+    while i <= l:
+        x_seq += chr(xans[i])
+        i += 1
+    print(f"X seq: {x_seq}")
+ 
+    # Y
+    i = id
+    y_seq = ""
+    while i <= l:
+        y_seq += chr(yans[i])
+        i += 1
+    print(f"Y seq: {y_seq}")
+
+
+    # output OPT[M][N], x_seq, y_seq to output_mine.txt
+    with open("output_mine.txt", "w") as f:
+        f.write(f"Similarity in gene alignment = {OPT[M][N]}\n")
+        f.write("The aligned genes are:\n")
+        f.write(f"X seq: {x_seq}\n")
+        f.write(f"Y seq: {y_seq}\n")
+            
+            
 
 
 
@@ -772,12 +1280,34 @@ def spaceEfficientMethod(input_file, output_file):
 
     first_indices,i_s=get_indices(lines,0)
     generated_string1_x = generate_string(lines[0].strip(), first_indices)
+
    
     print("Generated String x: ", generated_string1_x)
 
     second_indices,i_final=get_indices(lines,i_s)
     generated_string2_y = generate_string(lines[i_s].strip(), second_indices)
-   
+    # generated_string2_y ="CACAAT"
+    # generated_string2_y ="CA"
+
+
+    # generated_string1_x =""
+    # generated_string2_y ="C"
+
+    # generated_string1_x ="C"
+    # generated_string2_y =""
+
+    # generated_string1_x ="CG"
+    # generated_string2_y ="CA"
+
+    generated_string1_x ="ATC"
+    generated_string2_y ="AAT"
+
+    # generated_string1_x ="CGCATC"
+    # generated_string2_y ="CACAAT"
+
+
+
+
     print("Generated String y: ", generated_string2_y)
 
 
@@ -797,8 +1327,36 @@ def spaceEfficientMethod(input_file, output_file):
     # print("hello")
     # print("P",P)
     # sort P by x   
-    P.sort(key=lambda x: x[0][0])
+    # P.sort(key=lambda x: x[0][0])
+    # print("P",P)
+
+
+
+
+
+
+    # insert into the P
+    if [(0,0)] not in P:
+        P.append([(0,0)])
+    if [(len_x,len_y)] not in P:
+        P.append([(len_x,len_y)])
+    # P.insert(0,[(len_x,len_y)])
+    # sort P by x and y
+    P.sort(key=lambda x: (x[0][0],x[0][1]))
     print("P",P)
+
+    
+
+    # reconstruct the alignment
+    # reconstructUsingP(generated_string1_x,generated_string2_y,P)
+    # reconstructUsingPVerTemp(generated_string1_x,generated_string2_y,P)
+    reconstructUsingPVerTempReversed(generated_string1_x,generated_string2_y,P)
+    # reconstructUsingPVerTwo(generated_string1_x,generated_string2_y,P)
+    # print(f"Y seq: {y_seq}")
+    # print(f"X seq: {x_seq}")
+
+        
+    
 
     # get the only x element in P
     P_x = [x[0][0] for x in P]
@@ -820,9 +1378,10 @@ def spaceEfficientMethod(input_file, output_file):
     print("P_x_set_list",P_x_set_list)
     print("Y",len(P_x_set_list))
 
-    # generate list which has 0 to 64
-    list_0_to_64 = [x for x in range(0,65)]
-    # set 
+    # # generate list which has 0 to 64
+    # list_0_to_64 = [x for x in range(0,65)]
+    # # get the difference between list_0_to_64 and P_x_set_list
+    # diff_list = list(set(list_0_to_64) - set(P_x_set_list))
 
 
 
@@ -839,7 +1398,7 @@ def call_algorithm(input_file, output_file):
     # file = open("SampleTestCases/input3.txt", "r")
 
     # naive approach
-    # naiveMethod(input_file, output_file)
+    naiveMethod(input_file, output_file)
     
 
 
