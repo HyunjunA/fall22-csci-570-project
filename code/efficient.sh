@@ -1,0 +1,1 @@
+python3 efficient_3.py input1.txt output_mine_sp.txt

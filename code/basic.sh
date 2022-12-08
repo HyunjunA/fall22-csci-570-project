@@ -1,0 +1,1 @@
+python3 basic_3.py input1.txt output_mine.txt
