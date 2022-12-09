@@ -11,17 +11,15 @@ def process_memory():
     memory_consumed = int(memory_info.rss/1024)
     return memory_consumed
 
-def time_wrapper(input_file,output_file):
+def time_wrapper(lines):
     start_time = time.time()
-    call_algorithm(input_file,output_file)
+    cost, alignment1, alignment2 = spaceEfficientMethod(lines)
     end_time = time.time()
     time_taken = (end_time - start_time)*1000
-    return time_taken
+    return time_taken, cost, alignment1, alignment2
 
 #  DEFINE GLOBAL VARIABLES
 P=[]
-# MAKE the variable naive_opt available from any function
-naive_opt = 0
 # Delta value: price of a gap
 delta = 30
 
@@ -86,125 +84,37 @@ def alpha(x,y):
     elif x == 'T' and y == 'G':
         return 110
 
-#def basic_algo(generated_string1_x, generated_string2_y,x_range,y_range):
-def basic_algo(generated_string1_x, generated_string2_y):   
-    """
-    Process generated strings, then runs basic version 
-    of the dynamic programming algorithm for sequence alignment
-    """
-    # define OPT as a 2D array  
-    OPT = [[0 for x in range(len(generated_string2_y)+1)] for y in range(len(generated_string1_x)+1)]
 
-    # initialize OPT(0,0) = 0
-    OPT[0][0] = 0
-    
-    # lengths of input strings
-    m = len(generated_string1_x)
-    n = len(generated_string2_y)
-
-    # optimal costs DP table initialization
-    opt = [[0 for x in range(n+1)] for y in range(m+1)]
-    # initialize OPT(i,0) = delta*i
-    for i in range(1,m+1):
-        opt[i][0] = i*delta
-    # initialize OPT(0,j) = delta*j
-    for j in range(1,n+1):
-        opt[0][j] = delta*j
-    
-    # construction of DP table from bottom-up
-    for i in range(1,m+1):
-        for j in range(1,n+1):                       
-            opt[i][j] = min ( 
-                opt[i-1][j-1] + alpha(generated_string1_x[i-1],generated_string2_y[j-1]), 
-                opt[i-1][j] + delta, 
-                opt[i][j-1] + delta 
-            )
-
-    #same as xans and yans
-    x_final = []
-    y_final = []
-
-    while m!=0 and n!=0:
-        if (generated_string1_x[m-1] == generated_string2_y[n-1]) or (opt[m-1][n-1] + alpha(generated_string1_x[m-1],generated_string2_y[n-1])) == opt[m][n]:       
-            x_final.append(generated_string1_x[m-1])
-            y_final.append(generated_string2_y[n-1])
-            m-=1
-            n-=1
-         
-        elif (opt[m][n-1] + delta) == opt[m][n]:       
-            x_final.append('_')
-            y_final.append(generated_string2_y[n-1])
-            n -= 1
-
-        elif (opt[m-1][n] + delta) == opt[m][n]:
-            x_final.append(generated_string1_x[m-1])
-            y_final.append('_')
-            m -= 1
-
-    while m>0:
-        x_final.append(generated_string1_x[m-1])
-        m-=1
-
-    while n>0:
-        y_final.append(generated_string2_y[n-1])
-        n-=1
-
-    while len(x_final) < len(y_final):
-        x_final.append('_')
-
-    while len(y_final) < len(x_final):
-        y_final.append('_')
-
-    x_final.reverse()
-    y_final.reverse()
-
-    #aligned_x = ''.join(x_final)
-    #aligned_y = ''.join(y_final)  
-    return opt  
-  
-def eachinterationfrom(x,y):
+def forward_alignment(x,y):
     generated_string1_x = x
     generated_string2_y = y
-    # # define OPT as a 2D array  
-    # OPT = [[0 for x in range(len(generated_string2_y)+1)] for y in range(len(generated_string1_x)+1)]
 
     # in the space efficient method, we only need to keep track of the previous row and the current row
     # define OPT which keep track of the previous row and the current row
     OPT = [[0 for x in range(len(generated_string2_y)+1)] for y in range(2)]
 
-    # initialize OPT(0,0) = 0
-    OPT[0][0] = 0
-    
-    delta = 30
-
     # initialize OPT(0,j) = delta*j
     for j in range(1,len(generated_string2_y)+1):
         OPT[0][j] = delta*j
-
     # initialize OPT(i,0) = delta*i
     for i in range(1,2):
         OPT[i][0] = i*delta
 
-    # number of interation in i
-    iter_i=0
-
     for i in range(1,len(generated_string1_x)+1):
-        cur_i = i
         if i > 1:
             # Move current row to previous row
             OPT[0] = OPT[1]
             # set current row to 0. 
             OPT[1] = [0 for x in range(len(generated_string2_y)+1)]
             OPT[1][0] = i*delta
-        i = i-iter_i
+
         for j in range(1,len(generated_string2_y)+1):
-            if i > 0 and j > 0:
-                OPT[i][j] = min ( 
-                    OPT[i-1][j-1] + alpha(generated_string1_x[cur_i-1],generated_string2_y[j-1]), 
-                    OPT[i-1][j] + delta, 
-                    OPT[i][j-1] + delta 
-                )
-        iter_i+=1
+            OPT[1][j] = min ( 
+                OPT[0][j-1] + alpha(generated_string1_x[i-1],generated_string2_y[j-1]), 
+                OPT[0][j] + delta, 
+                OPT[1][j-1] + delta 
+            )
+
     return OPT[1]
 
 def divConq_align(generated_string1_x,generated_string2_y,x_range,y_range):
@@ -214,20 +124,17 @@ def divConq_align(generated_string1_x,generated_string2_y,x_range,y_range):
     string_y = generated_string2_y[y_range[0]:y_range[1]]
     
     if len(string_x) < 2 and len(string_y) <2:
-        temp = basic_algo(string_x,string_y)
-        #temp = basic_algo(string_x,string_y,x_range,y_range)
-        return temp
+        return 
     
-    # professor's
     string_x_L = string_x[:int(len(string_x)/2)]
     string_x_R = string_x[int(len(string_x)/2):]
     
-    for_opt_last=eachinterationfrom(string_x_L,string_y)
+    for_opt_last=forward_alignment(string_x_L,string_y)
     
+    # Backward-Space-Efficient-Alignment(X,Y[n/2+1:n]) by reversing strings
     string_x_R_reversed = string_x_R[::-1]
     string_y_reversed = string_y[::-1]
-    # Call Backward-Space-Efficient-Alignment(X,Y[n/2+1:n]) 
-    back_opt_last=eachinterationfrom(string_x_R_reversed,string_y_reversed)
+    back_opt_last=forward_alignment(string_x_R_reversed,string_y_reversed)
 
     # add for_opt_last and back_opt_last[::-1] element by element
     for_opt_last_np = np.array(for_opt_last)
@@ -241,42 +148,32 @@ def divConq_align(generated_string1_x,generated_string2_y,x_range,y_range):
     n = len(string_x)
     n_2 = int(n/2)
     n_2 = x_range[0] + n_2
-
     elem_P = [(n_2,q)]
     P.append(elem_P)
-
-    # sort P by x
-    P.sort(key=lambda x: x[0][0])
 
     # Divide-and-Conquer-Alignment(X[1 : n/2],Y[1 : q])
     x_range_fi = [x_range[0],n_2]
     y_range_fi = [y_range[0],q]
-
-    l_p=divConq_align(generated_string1_x,generated_string2_y, x_range_fi, y_range_fi)
+    
+    divConq_align(generated_string1_x,generated_string2_y, x_range_fi, y_range_fi)
 
     # Divide-and-Conquer-Alignment(X[n/2+1 : n],Y[q+1 : n])
     x_range_se = [n_2,x_range[1]]
     y_range_se = [q,y_range[1]]
     
-    r_p=divConq_align(generated_string1_x,generated_string2_y, x_range_se, y_range_se)
+    divConq_align(generated_string1_x,generated_string2_y, x_range_se, y_range_se)
 
-    return P
 
-def reconstructUsingPVerTempReversed(generated_string1_x,generated_string2_y,P, output_file):
+def reconstructUsingPVerTempReversed(generated_string1_x,generated_string2_y):
     x_seq = ""
     y_seq = ""
 
-    # x_seq
     len_P = len(P)
     ind_P=0
 
     x_seq_loc = len(generated_string1_x)-1
     y_seq_loc = len(generated_string2_y)-1
 
-    # reverse for loop
-    # for i in range(len_P-1,-1,-1):
-    
-    # for i < len_P:
     for ind_P in range(len_P-1,-1,-1):
         if ind_P == len_P-1 :
             x = P[ind_P][0][0]
@@ -291,19 +188,16 @@ def reconstructUsingPVerTempReversed(generated_string1_x,generated_string2_y,P, 
             if x_diff == 1 and y_diff == 0:
                 x_seq = generated_string1_x[x_seq_loc] + x_seq
                 x_seq_loc -= 1
-
                 y_seq = "_" + y_seq
             
             elif x_diff == 0 and y_diff == 1:
                 x_seq = "_" + x_seq
-
                 y_seq = generated_string2_y[y_seq_loc] + y_seq
                 y_seq_loc -= 1
             
             elif x_diff == 1 and y_diff == 1:
                 x_seq = generated_string1_x[x_seq_loc] + x_seq
                 x_seq_loc -= 1
-
                 y_seq = generated_string2_y[y_seq_loc] + y_seq
                 y_seq_loc -= 1
         else:
@@ -327,7 +221,6 @@ def reconstructUsingPVerTempReversed(generated_string1_x,generated_string2_y,P, 
             elif x_diff ==1 and y_diff == 0:
                 x_seq = generated_string1_x[x_seq_loc] + x_seq
                 x_seq_loc -= 1
-
                 y_seq = "_" + y_seq
             
             elif x_diff ==0 and y_diff == 1:
@@ -336,111 +229,54 @@ def reconstructUsingPVerTempReversed(generated_string1_x,generated_string2_y,P, 
                 y_seq_loc -= 1
 
     #calculate final alignment cost
-        
-    for_opt_last_val = np.array(eachinterationfrom(generated_string1_x,generated_string2_y))
+    for_opt_last_val = np.array(forward_alignment(generated_string1_x,generated_string2_y))
     len_final_string = len(for_opt_last_val) -1
     final_cost = for_opt_last_val[len_final_string]
     print("final cost",final_cost)
-    
-    # open 
-    output_file = output_file
-    output="../"+output_file
-    file = open(output, "a")
-
-    # 1. Cost of the alignment (Integer)
-    # 2. First string alignment ( Consists of A, C, T, G, _ (gap) characters)
-    # 3. Second string alignment ( Consists of A, C, T, G, _ (gap) characters )
-    # 4. Time in Milliseconds (Float)
-    # 5. Memory in Kilobytes (Float)
-
-    # write to file
-    output = open(output_file, "a")
-    output.write(str(final_cost) + "\n")
-    output.write(x_seq + "\n")
-    output.write(y_seq + "\n")
-
-    # close output_file
-    output.close()
-
     print("x_seq",x_seq)
     print("y_seq",y_seq)
 
-def spaceEfficientMethod(input_file,output_file):
-    # this is the space efficient method
-    # read the input file
-    print("input_file",input_file)
-    file = open(input_file, "r")
+    return final_cost, x_seq, y_seq
 
-    lines = file.readlines()
-    file.close()
+
+def spaceEfficientMethod(lines):
     # get first part of number string
-
     first_indices,i_s=get_indices(lines,0)
     generated_string1_x = generate_string(lines[0].strip(), first_indices)
-
-   
-    print("Generated String x: ", generated_string1_x)
 
     second_indices,i_final=get_indices(lines,i_s)
     generated_string2_y = generate_string(lines[i_s].strip(), second_indices)
 
-    print("Generated String y: ", generated_string2_y)
-
-    # 
     len_x=len(generated_string1_x)
     len_y=len(generated_string2_y)
 
     # Divide-and-Conquer-Alignment(X ,Y )
-
     divConq_align(generated_string1_x,generated_string2_y,[0,len_x],[0,len_y])
 
     # insert into the P
-    # if [(0,0)] not in P:
-    #     P.append([(0,0)])
     if [(len_x,len_y)] not in P:
         P.append([(len_x,len_y)])
 
-        
-    # P.insert(0,[(len_x,len_y)])
     # sort P by x and y
     P.sort(key=lambda x: (x[0][0],x[0][1]))
 
-    # reconstruct the alignment
-    reconstructUsingPVerTempReversed(generated_string1_x,generated_string2_y,P,output_file)
+    # reconstruct the alignment (returns optimal cost, aligned string x, aligned string y)
+    return reconstructUsingPVerTempReversed(generated_string1_x, generated_string2_y)
     
-    # get the only x element in P
-    P_x = [x[0][0] for x in P]
-    # set P_x to set
-    P_x_set = set(P_x)
-    # list P_x_set  
-    P_x_set_list = list(P_x_set)
-    # show length of P_x_set_list
-
-    # get the only x element in P
-    P_x = [x[0][1] for x in P]
-    # set P_x to set
-    P_x_set = set(P_x)
-    # list P_x_set  
-    P_x_set_list = list(P_x_set)
-
-def call_algorithm(input_file,output_file):
-    # space efficient approach
-    spaceEfficientMethod(input_file,output_file) 
 
 if __name__ == "__main__":
     # Read the input file
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
+    with open(sys.argv[1], 'r') as infile:
+        lines = infile.readlines()
 
     # call_algorithm(input_file, output_file)
-    elapsed_time = time_wrapper(input_file,output_file)
+    elapsed_time, cost, alignment1, alignment2 = time_wrapper(lines)
     consumed_memory = process_memory()
     
     # write results to output file
-    with open(output_file, "a") as f:
-        # 4. Time in Milliseconds (Float)
-        f.write(f"{elapsed_time}\n")
-        # 5. Memory in Kilobytes (Float)
-        f.write(f"{consumed_memory}\n")
-    # close output_file
-    f.close()
+    with open(sys.argv[2], 'w') as outfile:
+        outfile.write(str(cost) + '\n')
+        outfile.write(alignment1+ '\n')
+        outfile.write(alignment2+ '\n')
+        outfile.write(str(elapsed_time)+ '\n')
+        outfile.write(str(consumed_memory))

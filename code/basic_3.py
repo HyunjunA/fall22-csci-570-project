@@ -184,4 +184,4 @@ if __name__ == "__main__":
         outfile.write(alignment1+ '\n')
         outfile.write(alignment2+ '\n')
         outfile.write(str(elapsed_time)+ '\n')
-        outfile.write(str(consumed_memory)+ '\n')
+        outfile.write(str(consumed_memory))
