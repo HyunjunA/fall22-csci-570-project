@@ -123,7 +123,7 @@ def divConq_align(generated_string1_x,generated_string2_y,x_range,y_range):
     string_x = generated_string1_x[x_range[0]:x_range[1]]
     string_y = generated_string2_y[y_range[0]:y_range[1]]
     
-    if len(string_x) < 2 and len(string_y) <2:
+    if len(string_x) < 2 and len(string_y) < 2:
         return 
     
     string_x_L = string_x[:int(len(string_x)/2)]
@@ -175,66 +175,36 @@ def reconstructUsingPVerTempReversed(generated_string1_x,generated_string2_y):
     y_seq_loc = len(generated_string2_y)-1
 
     for ind_P in range(len_P-1,-1,-1):
-        if ind_P == len_P-1 :
-            x = P[ind_P][0][0]
-            y = P[ind_P][0][1]
+        x = P[ind_P][0][0]
+        y = P[ind_P][0][1]
+        
+        x_prev = P[ind_P-1][0][0]
+        y_prev = P[ind_P-1][0][1]
 
-            x_prev = P[ind_P-1][0][0]
-            y_prev = P[ind_P-1][0][1]
+        x_diff=x-x_prev
+        y_diff=y-y_prev
 
-            x_diff=x-x_prev
-            y_diff=y-y_prev
-
-            if x_diff == 1 and y_diff == 0:
-                x_seq = generated_string1_x[x_seq_loc] + x_seq
-                x_seq_loc -= 1
-                y_seq = "_" + y_seq
+        if x_diff == 1 and y_diff == 1:
+            # add generated_string1_x[x_seq_loc] to most left of x_seq
+            x_seq = generated_string1_x[x_seq_loc] + x_seq
+            x_seq_loc -= 1
+            y_seq = generated_string2_y[y_seq_loc] + y_seq
+            y_seq_loc -= 1
             
-            elif x_diff == 0 and y_diff == 1:
-                x_seq = "_" + x_seq
-                y_seq = generated_string2_y[y_seq_loc] + y_seq
-                y_seq_loc -= 1
-            
-            elif x_diff == 1 and y_diff == 1:
-                x_seq = generated_string1_x[x_seq_loc] + x_seq
-                x_seq_loc -= 1
-                y_seq = generated_string2_y[y_seq_loc] + y_seq
-                y_seq_loc -= 1
-        else:
-            x = P[ind_P][0][0]
-            y = P[ind_P][0][1]
-
-            x_prev = P[ind_P-1][0][0]
-            y_prev = P[ind_P-1][0][1]
-
-            x_diff=x-x_prev
-            y_diff=y-y_prev
-
-            if x_diff ==1 and y_diff == 1:
-                # add generated_string1_x[x_seq_loc] to most left of x_seq
-                x_seq = generated_string1_x[x_seq_loc] + x_seq
-                # x_seq += generated_string1_x[x_seq_loc]
-                x_seq_loc -= 1
-                y_seq = generated_string2_y[y_seq_loc] + y_seq
-                y_seq_loc -= 1
-                
-            elif x_diff ==1 and y_diff == 0:
-                x_seq = generated_string1_x[x_seq_loc] + x_seq
-                x_seq_loc -= 1
-                y_seq = "_" + y_seq
-            
-            elif x_diff ==0 and y_diff == 1:
-                x_seq = "_" + x_seq
-                y_seq = generated_string2_y[y_seq_loc] + y_seq
-                y_seq_loc -= 1
+        elif x_diff ==1 and y_diff == 0:
+            x_seq = generated_string1_x[x_seq_loc] + x_seq
+            x_seq_loc -= 1
+            y_seq = "_" + y_seq
+        
+        elif x_diff ==0 and y_diff == 1:
+            x_seq = "_" + x_seq
+            y_seq = generated_string2_y[y_seq_loc] + y_seq
+            y_seq_loc -= 1
 
     #calculate final alignment cost
     for_opt_last_val = np.array(forward_alignment(generated_string1_x,generated_string2_y))
     len_final_string = len(for_opt_last_val) -1
     final_cost = for_opt_last_val[len_final_string]
-    print("final cost",final_cost)
-    print("x_seq",x_seq)
-    print("y_seq",y_seq)
 
     return final_cost, x_seq, y_seq
 
